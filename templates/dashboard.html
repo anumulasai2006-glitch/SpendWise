@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <!-- Header -->
+
+    <div class="dashboard-header">
+
+        <div>
+
+            <h1>Welcome Back 👋</h1>
+
+            <p>Track every rupee. Spend smarter with AI.</p>
+
+        </div>
+
+        <button class="add-btn">
+
+            <i class="fa-solid fa-plus"></i>
+
+            Add Expense
+
+        </button>
+
+    </div>
+
+    <!-- Statistics Cards -->
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-icon expense">
+
+                <i class="fa-solid fa-wallet"></i>
+
+            </div>
+
+            <div class="card-info">
+
+                <h4>Total Expense</h4>
+
+                <h2>₹18,750</h2>
+
+                <span class="red">+12% this month</span>
+
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <div class="card-icon budget">
+
+                <i class="fa-solid fa-piggy-bank"></i>
+
+            </div>
+
+            <div class="card-info">
+
+                <h4>Budget Left</h4>
+
+                <h2>₹11,250</h2>
+
+                <span class="green">37% Remaining</span>
+
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <div class="card-icon savings">
+
+                <i class="fa-solid fa-chart-line"></i>
+
+            </div>
+
+            <div class="card-info">
+
+                <h4>Savings</h4>
+
+                <h2>₹7,800</h2>
+
+                <span class="green">+18%</span>
+
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <div class="card-icon trips">
+
+                <i class="fa-solid fa-route"></i>
+
+            </div>
+
+            <div class="card-info">
+
+                <h4>Upcoming Trip</h4>
+
+                <h2>₹4,000</h2>
+
+                <span>Budget Reserved</span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Middle Section -->
+
+    <div class="middle-section">
+
+        <div class="chart-card">
+
+            <h3>Expense Overview</h3>
+
+           <div class="chart-placeholder">
+    Expense Chart will appear here
+</div>
+
+        </div>
+
+        <div class="transaction-card">
+
+            <h3>Recent Transactions</h3>
+
+            <table>
+
+                <tr>
+
+                    <th>Merchant</th>
+
+                    <th>Category</th>
+
+                    <th>Amount</th>
+
+                </tr>
+
+                <tr>
+
+                    <td>Domino's</td>
+
+                    <td>Food</td>
+
+                    <td>₹540</td>
+
+                </tr>
+
+                <tr>
+
+                    <td>KSRTC</td>
+
+                    <td>Travel</td>
+
+                    <td>₹650</td>
+
+                </tr>
+
+                <tr>
+
+                    <td>Amazon</td>
+
+                    <td>Shopping</td>
+
+                    <td>₹1,299</td>
+
+                </tr>
+
+                <tr>
+
+                    <td>Swiggy</td>
+
+                    <td>Food</td>
+
+                    <td>₹220</td>
+
+                </tr>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- Bottom Section -->
+
+    <div class="bottom-section">
+
+        <div class="insight-card">
+
+            <h3>
+
+                <i class="fa-solid fa-lightbulb"></i>
+
+                AI Insight
+
+            </h3>
+
+            <p>
+
+                You spent <strong>42%</strong> more on Food this month.
+
+                Consider reducing restaurant expenses by ₹2,000 to stay within budget.
+
+            </p>
+
+        </div>
+
+        <div class="budget-card">
+
+            <h3>Category Breakdown</h3>
+
+            <ul>
+
+                <li>🍔 Food - ₹5,200</li>
+
+                <li>🚌 Travel - ₹3,400</li>
+
+                <li>🛍 Shopping - ₹4,800</li>
+
+                <li>🎬 Entertainment - ₹2,100</li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
