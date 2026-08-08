@@ -16,13 +16,10 @@
 
         </div>
 
-        <button class="add-btn">
-
-            <i class="fa-solid fa-plus"></i>
-
-            Add Expense
-
-        </button>
+       <button class="add-btn" id="openExpenseModal">
+    <i class="fa-solid fa-plus"></i>
+    Add Expense
+</button>
 
     </div>
 
@@ -42,7 +39,7 @@
 
                 <h4>Total Expense</h4>
 
-                <h2>₹18,750</h2>
+                <h2>₹{{ "{:,.2f}".format(total_expense) }}</h2>
 
                 <span class="red">+12% this month</span>
 
@@ -126,66 +123,55 @@
 
         </div>
 
-        <div class="transaction-card">
+        <table>
 
-            <h3>Recent Transactions</h3>
+    <thead>
+        <tr>
+            <th>Merchant</th>
+            <th>Category</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
 
-            <table>
+    <tbody>
 
-                <tr>
+        {% if transactions %}
 
-                    <th>Merchant</th>
+            {% for transaction in transactions[:5] %}
 
-                    <th>Category</th>
+            <tr>
 
-                    <th>Amount</th>
+                <td>
+                    {{ transaction["merchant"] }}
+                </td>
 
-                </tr>
+                <td>
+                    {{ transaction["category"] }}
+                </td>
 
-                <tr>
+                <td>
+                    ₹{{ "%.2f"|format(transaction["amount"]) }}
+                </td>
 
-                    <td>Domino's</td>
+            </tr>
 
-                    <td>Food</td>
+            {% endfor %}
 
-                    <td>₹540</td>
+        {% else %}
 
-                </tr>
+            <tr>
 
-                <tr>
+                <td colspan="3" style="text-align: center;">
+                    No transactions yet
+                </td>
 
-                    <td>KSRTC</td>
+            </tr>
 
-                    <td>Travel</td>
+        {% endif %}
 
-                    <td>₹650</td>
+    </tbody>
 
-                </tr>
-
-                <tr>
-
-                    <td>Amazon</td>
-
-                    <td>Shopping</td>
-
-                    <td>₹1,299</td>
-
-                </tr>
-
-                <tr>
-
-                    <td>Swiggy</td>
-
-                    <td>Food</td>
-
-                    <td>₹220</td>
-
-                </tr>
-
-            </table>
-
-        </div>
-
+</table>
     </div>
 
     <!-- Bottom Section -->
@@ -233,5 +219,347 @@
     </div>
 
 </div>
+
+<!-- Add Expense Modal -->
+
+<div class="modal-overlay" id="expenseModal">
+
+    <div class="expense-modal">
+
+        <div class="modal-header">
+
+            <div>
+                <span class="modal-label">TRANSACTION</span>
+                <h2>Add Expense</h2>
+                <p>Record your spending and keep your finances organized.</p>
+            </div>
+
+            <button class="close-modal" id="closeExpenseModal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+        </div>
+
+
+        <form id="expenseForm">
+
+            <div class="form-grid">
+
+                <!-- Merchant -->
+
+                <div class="form-group full-width">
+
+                    <label for="merchant">
+                        Merchant
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <i class="fa-solid fa-store"></i>
+
+                        <input
+                            type="text"
+                            id="merchant"
+                            name="merchant"
+                            placeholder="e.g. Swiggy, Amazon, KSRTC"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- Amount -->
+
+                <div class="form-group">
+
+                    <label for="amount">
+                        Amount
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <span class="currency">₹</span>
+
+                        <input
+                            type="number"
+                            id="amount"
+                            name="amount"
+                            placeholder="0.00"
+                            min="1"
+                            step="0.01"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- Date -->
+
+                <div class="form-group">
+
+                    <label for="transaction_date">
+                        Date
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <i class="fa-regular fa-calendar"></i>
+
+                        <input
+                            type="date"
+                            id="transaction_date"
+                            name="transaction_date"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- Category -->
+
+                <div class="form-group">
+
+                    <label for="category">
+                        Category
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <i class="fa-solid fa-layer-group"></i>
+
+                        <select id="category" name="category" required>
+
+                            <option value="" disabled selected>
+                                Select category
+                            </option>
+
+                            <option value="Food">
+                                🍔 Food
+                            </option>
+
+                            <option value="Travel">
+                                🚌 Travel
+                            </option>
+
+                            <option value="Shopping">
+                                🛍 Shopping
+                            </option>
+
+                            <option value="Entertainment">
+                                🎬 Entertainment
+                            </option>
+
+                            <option value="Bills">
+                                💡 Bills
+                            </option>
+
+                            <option value="Health">
+                                ❤️ Health
+                            </option>
+
+                            <option value="Education">
+                                📚 Education
+                            </option>
+
+                            <option value="Other">
+                                📦 Other
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Payment Method -->
+
+                <div class="form-group">
+
+                    <label for="payment_method">
+                        Payment Method
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <i class="fa-solid fa-credit-card"></i>
+
+                        <select
+                            id="payment_method"
+                            name="payment_method"
+                        >
+
+                            <option value="UPI">
+                                UPI
+                            </option>
+
+                            <option value="Card">
+                                Card
+                            </option>
+
+                            <option value="Cash">
+                                Cash
+                            </option>
+
+                            <option value="Net Banking">
+                                Net Banking
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Notes -->
+
+                <div class="form-group full-width">
+
+                    <label for="notes">
+                        Notes
+                        <span>Optional</span>
+                    </label>
+
+                    <textarea
+                        id="notes"
+                        name="notes"
+                        placeholder="Add a note about this expense..."
+                        rows="3"
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="cancel-btn"
+                    id="cancelExpense"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="save-expense-btn"
+                >
+                    <i class="fa-solid fa-check"></i>
+                    Save Expense
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+
+    const expenseModal = document.getElementById("expenseModal");
+    const openExpenseModal = document.getElementById("openExpenseModal");
+    const closeExpenseModal = document.getElementById("closeExpenseModal");
+    const cancelExpense = document.getElementById("cancelExpense");
+
+
+    // Open modal
+    openExpenseModal.addEventListener("click", () => {
+
+        expenseModal.classList.add("active");
+
+    });
+
+
+    // Close modal
+    closeExpenseModal.addEventListener("click", () => {
+
+        expenseModal.classList.remove("active");
+
+    });
+
+
+    // Cancel button
+    cancelExpense.addEventListener("click", () => {
+
+        expenseModal.classList.remove("active");
+
+    });
+
+
+    // Close when clicking outside the modal
+    expenseModal.addEventListener("click", (event) => {
+
+        if (event.target === expenseModal) {
+
+            expenseModal.classList.remove("active");
+
+        }
+
+    });
+    const expenseForm = document.getElementById("expenseForm");
+
+expenseForm.addEventListener("submit", async (event) => {
+
+    event.preventDefault();
+
+    const formData = {
+        merchant: document.getElementById("merchant").value,
+        amount: document.getElementById("amount").value,
+        transaction_date: document.getElementById("transaction_date").value,
+        category: document.getElementById("category").value,
+        payment_method: document.getElementById("payment_method").value,
+        notes: document.getElementById("notes").value
+    };
+
+    try {
+
+        const response = await fetch("/add-expense", {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+
+            alert("Expense added successfully!");
+
+            expenseForm.reset();
+
+            expenseModal.classList.remove("active");
+
+        } else {
+
+            alert(result.message);
+
+        }
+
+    } catch (error) {
+
+        console.error("Error:", error);
+
+        alert("Something went wrong while saving the expense.");
+
+    }
+
+});
+
+</script>
 
 {% endblock %}
