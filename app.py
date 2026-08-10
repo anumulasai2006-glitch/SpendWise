@@ -3,7 +3,9 @@ from flask import Flask, render_template, request, jsonify
 from utils.database import (
     initialize_database,
     add_transaction,
-    get_transactions
+    get_transactions,
+    get_budget_details,
+    get_category_totals
 )
 
 
@@ -12,6 +14,7 @@ app = Flask(__name__)
 
 # Initialize database when the application starts
 initialize_database()
+
 
 @app.route("/")
 def dashboard():
@@ -23,11 +26,18 @@ def dashboard():
         for transaction in transactions
     )
 
+    budget_details = get_budget_details()
+
+    category_totals = get_category_totals()
+
     return render_template(
         "dashboard.html",
         transactions=transactions,
-        total_expense=total_expense
+        total_expense=total_expense,
+        budget_details=budget_details,
+        category_totals=category_totals
     )
+
 
 @app.route("/add-expense", methods=["POST"])
 def add_expense():
@@ -43,6 +53,7 @@ def add_expense():
 
     # Check required fields
     if not merchant or not amount or not category or not transaction_date:
+
         return jsonify({
             "success": False,
             "message": "Please fill in all required fields."
@@ -73,6 +84,18 @@ def add_expense():
             "success": False,
             "message": "Could not save the expense."
         }), 500
+
+
+# Transactions page
+@app.route("/transactions")
+def transactions():
+
+    transactions = get_transactions()
+
+    return render_template(
+        "transactions.html",
+        transactions=transactions
+    )
 
 
 if __name__ == "__main__":

@@ -59,10 +59,13 @@
 
                 <h4>Budget Left</h4>
 
-                <h2>₹11,250</h2>
+<h2>
+    ₹{{ "{:,.2f}".format(budget_details["budget_left"]) }}
+</h2>
 
-                <span class="green">37% Remaining</span>
-
+<span class="green">
+    {{ "%.1f"|format(budget_details["percentage_remaining"]) }}% Remaining
+</span>
             </div>
 
         </div>
@@ -118,7 +121,7 @@
             <h3>Expense Overview</h3>
 
            <div class="chart-placeholder">
-    Expense Chart will appear here
+    <canvas id="expenseChart"></canvas>
 </div>
 
         </div>
@@ -204,15 +207,26 @@
 
             <ul>
 
-                <li>🍔 Food - ₹5,200</li>
+    {% if category_totals %}
 
-                <li>🚌 Travel - ₹3,400</li>
+        {% for category, amount in category_totals.items() %}
 
-                <li>🛍 Shopping - ₹4,800</li>
+        <li>
+            <span>{{ category }}</span>
+            <strong>₹{{ "{:,.2f}".format(amount) }}</strong>
+        </li>
 
-                <li>🎬 Entertainment - ₹2,100</li>
+        {% endfor %}
 
-            </ul>
+    {% else %}
+
+        <li>
+            No expenses this month
+        </li>
+
+    {% endif %}
+
+</ul>
 
         </div>
 
@@ -561,5 +575,80 @@ expenseForm.addEventListener("submit", async (event) => {
 });
 
 </script>
+<script>
 
+    const categoryData = {{ category_totals | tojson }};
+
+    const categories = Object.keys(categoryData);
+    const amounts = Object.values(categoryData);
+
+    const chartCanvas = document.getElementById("expenseChart");
+
+    if (chartCanvas && categories.length > 0) {
+
+        new Chart(chartCanvas, {
+
+            type: "doughnut",
+
+            data: {
+
+                labels: categories,
+
+                datasets: [{
+                    data: amounts,
+
+                    borderWidth: 0,
+
+                    hoverOffset: 8
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                cutout: "68%",
+
+                plugins: {
+
+                    legend: {
+                        position: "bottom",
+
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+
+                    tooltip: {
+
+                        callbacks: {
+
+                            label: function(context) {
+
+                                const value = context.raw;
+
+                                return " ₹" +
+                                    value.toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2
+                                    });
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+</script>
 {% endblock %}
