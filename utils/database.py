@@ -108,6 +108,24 @@ def get_transactions():
 
     return transactions
 
+def get_transaction(transaction_id):
+    """Return one transaction by ID."""
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM transactions
+        WHERE id = ?
+    """, (transaction_id,))
+
+    transaction = cursor.fetchone()
+
+    connection.close()
+
+    return transaction
+
 
 def get_monthly_budget():
     """Return the current monthly budget."""
@@ -268,3 +286,53 @@ def get_category_totals():
             category_totals[category] += amount
 
     return category_totals
+
+def delete_transaction(transaction_id):
+    """Delete a transaction by ID."""
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        DELETE FROM transactions
+        WHERE id = ?
+    """, (transaction_id,))
+
+    connection.commit()
+    connection.close()
+
+def update_transaction(
+    transaction_id,
+    merchant,
+    amount,
+    category,
+    transaction_date,
+    payment_method="UPI",
+    notes=""
+):
+    """Update an existing transaction."""
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        UPDATE transactions
+        SET merchant = ?,
+            amount = ?,
+            category = ?,
+            transaction_date = ?,
+            payment_method = ?,
+            notes = ?
+        WHERE id = ?
+    """, (
+        merchant,
+        amount,
+        category,
+        transaction_date,
+        payment_method,
+        notes,
+        transaction_id
+    ))
+
+    connection.commit()
+    connection.close()

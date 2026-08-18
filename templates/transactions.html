@@ -271,6 +271,7 @@
                                 <button
                                     class="action-btn edit-btn"
                                     title="Edit transaction"
+                                    onclick="editTransaction({{ transaction['id'] }})"
                                 >
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
@@ -389,53 +390,114 @@ function filterTransactions() {
 }
 
 
-function deleteTransaction(id) {
 
-    const confirmed =
-        confirm(
-            "Are you sure you want to delete this transaction?"
-        );
+async function deleteTransaction(id) {
 
-    if (!confirmed) {
+    const confirmDelete = confirm(
+        "Delete this transaction?"
+    );
+
+    if (!confirmDelete) {
         return;
     }
 
+    const response = await fetch(
+        `/delete-transaction/${id}`,
+        {
+            method: "DELETE"
+        }
+    );
 
-    fetch(`/delete-transaction/${id}`, {
+    const result = await response.json();
 
-        method: "POST"
+    if (result.success) {
 
-    })
+        location.reload();
 
-    .then(response => response.json())
+    } else {
 
-    .then(data => {
+        alert(result.message);
 
-        if (data.success) {
+    }
+}
+async function editTransaction(id) {
 
-            location.reload();
+    try {
 
-        } else {
+        const response = await fetch(
+            `/get-transaction/${id}`
+        );
 
-            alert(
-                data.message ||
-                "Unable to delete transaction."
-            );
+        const result = await response.json();
+
+        if (!result.success) {
+            alert(result.message);
+            return;
+        }
+
+        const transaction = result.transaction;
+
+        // Store the ID being edited
+        window.editingTransactionId = id;
+
+        // Open the expense modal
+        const modal = document.getElementById("expenseModal");
+
+        if (!modal) {
+            alert("Expense form could not be found.");
+            return;
+        }
+
+        // Fill existing values
+        document.getElementById("merchant").value =
+            transaction.merchant;
+
+        document.getElementById("amount").value =
+            transaction.amount;
+
+        document.getElementById("transaction_date").value =
+            transaction.transaction_date;
+
+        document.getElementById("category").value =
+            transaction.category;
+
+        document.getElementById("payment_method").value =
+            transaction.payment_method;
+
+        document.getElementById("notes").value =
+            transaction.notes || "";
+
+        // Change modal title
+        const modalTitle =
+            modal.querySelector("h2");
+
+        if (modalTitle) {
+            modalTitle.textContent =
+                "Edit Expense";
+        }
+
+        // Change save button text
+        const saveButton =
+            modal.querySelector(".save-expense-btn");
+
+        if (saveButton) {
+
+            saveButton.innerHTML =
+                '<i class="fa-solid fa-pen"></i> Update Expense';
 
         }
 
-    })
+        modal.classList.add("active");
 
-    .catch(error => {
+    } catch (error) {
 
-        console.error(error);
+        console.error("Edit error:", error);
 
         alert(
-            "Something went wrong while deleting the transaction."
+            "Something went wrong while loading the transaction."
         );
 
-    });
-
+    }
 }
 
 </script>
