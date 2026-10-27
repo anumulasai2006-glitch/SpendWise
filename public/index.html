@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpendWise — Intelligent Personal Finance & Automated Expense Tracking</title>
+  <meta name="description" content="Intelligent personal finance assistant with automated bank SMS detection, smart categorization, budget pacing, trip mode, and AI spending insights.">
+  
+  <!-- Google Fonts: Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-section">
+        <a href="#" class="brand-logo" onclick="switchView('dashboard'); return false;">
+          <div class="logo-icon">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <div class="logo-text">
+            <h1>SpendWise</h1>
+            <span class="badge">AI Finance</span>
+          </div>
+        </a>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a class="nav-link active" data-view="dashboard" id="nav-dashboard">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-view="detector" id="nav-detector">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>SMS Detector</span>
+            <span class="nav-badge">AI</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-view="expenses" id="nav-expenses">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Expenses</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-view="budget" id="nav-budget">
+            <i class="fa-solid fa-bullseye"></i>
+            <span>Budget</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-view="analytics" id="nav-analytics">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Analytics</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-view="trips" id="nav-trips">
+            <i class="fa-solid fa-plane-departure"></i>
+            <span>Trip Mode</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-view="insights" id="nav-insights">
+            <i class="fa-solid fa-brain"></i>
+            <span>AI Insights</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="status-dot" id="db-status-dot"></span>
+          <span id="db-status-text">Database Connected</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <main class="main-wrapper">
+      <!-- Top Sticky Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <h2 class="page-title" id="page-title">Dashboard Overview</h2>
+        </div>
+
+        <div class="header-right">
+          <!-- Month/Year Period Picker -->
+          <select id="period-month" class="form-control" style="width: auto; padding: 7px 12px; font-size: 0.85rem;" onchange="handlePeriodChange()">
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+
+          <select id="period-year" class="form-control" style="width: auto; padding: 7px 12px; font-size: 0.85rem;" onchange="handlePeriodChange()">
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026" selected>2026</option>
+          </select>
+
+          <button class="btn btn-secondary btn-sm" id="btn-quick-detect" onclick="switchView('detector')">
+            <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Parse SMS
+          </button>
+          
+          <button class="btn btn-primary btn-sm" id="btn-new-expense" onclick="openExpenseModal()">
+            <i class="fa-solid fa-plus"></i> New Expense
+          </button>
+        </div>
+      </header>
+
+      <!-- Dynamic Content Area -->
+      <div class="page-content">
+
+        <!-- ================= VIEW: DASHBOARD ================= -->
+        <section id="view-dashboard" class="view-section active">
+          <div class="dashboard-grid">
+            <!-- Stat Cards Row -->
+            <div class="stats-row">
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title">Monthly Spending</span>
+                  <div class="stat-icon icon-purple">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                  </div>
+                </div>
+                <div class="stat-value" id="stat-total-spent">₹0</div>
+                <div class="stat-footer">
+                  <span id="stat-tx-count">0 transactions</span>
+                  <span>•</span>
+                  <span id="stat-user-share-label">User Share</span>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title">Monthly Budget</span>
+                  <div class="stat-icon icon-emerald">
+                    <i class="fa-solid fa-bullseye"></i>
+                  </div>
+                </div>
+                <div class="stat-value" id="stat-budget-target">₹0</div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" id="stat-budget-progress" style="width: 0%;"></div>
+                </div>
+                <div class="stat-footer" style="margin-top: 8px;">
+                  <span id="stat-budget-used-text">0% utilized</span>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title">Remaining Budget</span>
+                  <div class="stat-icon icon-amber">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                  </div>
+                </div>
+                <div class="stat-value" id="stat-remaining-budget">₹0</div>
+                <div class="stat-footer">
+                  <span id="stat-daily-allowance">₹0 / day available</span>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title">Total Income / Credit</span>
+                  <div class="stat-icon icon-cyan">
+                    <i class="fa-solid fa-wallet"></i>
+                  </div>
+                </div>
+                <div class="stat-value" id="stat-total-income">₹0</div>
+                <div class="stat-footer">
+                  <span id="stat-net-balance">Net balance: ₹0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Insights Banner -->
+            <div class="insights-banner">
+              <div class="insights-header">
+                <div class="ai-badge">
+                  <i class="fa-solid fa-sparkles"></i> AI Financial Intelligence
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="switchView('insights')">
+                  View All Insights <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+              <div class="insights-list" id="dashboard-insights-container">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+
+            <!-- Visual Charts Row -->
+            <div class="charts-row">
+              <div class="glass-card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fa-solid fa-chart-line"></i> 6-Month Spending Trend
+                  </h3>
+                  <span class="tag-badge" id="trend-month-range">Last 6 Months</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="dashboardTrendChart"></canvas>
+                </div>
+              </div>
+
+              <div class="glass-card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fa-solid fa-chart-pie"></i> Category Expenditure
+                  </h3>
+                  <span class="tag-badge">Current Month</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="dashboardCategoryChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Transactions Section -->
+            <div class="glass-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fa-solid fa-clock-rotate-left"></i> Recent Transactions
+                </h3>
+                <button class="btn btn-secondary btn-sm" onclick="switchView('expenses')">
+                  View All Expenses <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Merchant / Details</th>
+                      <th>Category</th>
+                      <th>Date</th>
+                      <th>Type / Mode</th>
+                      <th>Amount</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-transactions-tbody">
+                    <!-- Populated via JavaScript -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= VIEW: SMS DETECTOR SANDBOX ================= -->
+        <section id="view-detector" class="view-section">
+          <div class="sms-sandbox-layout">
+            <!-- Left: SMS Input Sandbox -->
+            <div class="glass-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fa-solid fa-mobile-screen-button"></i> Transaction SMS Engine
+                </h3>
+                <span class="tag-badge badge-detected"><i class="fa-solid fa-bolt"></i> Auto Extract</span>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+                Paste any bank, UPI or credit card alert message. SpendWise automatically extracts amount, merchant, date, type, and predicts category.
+              </p>
+
+              <!-- Quick Sample Pills -->
+              <div class="sample-pills">
+                <button class="pill-btn" onclick="loadSampleSms('swiggy')">🍕 Swiggy UPI</button>
+                <button class="pill-btn" onclick="loadSampleSms('zomato')">🍔 Zomato Card</button>
+                <button class="pill-btn" onclick="loadSampleSms('uber')">🚕 Uber Commute</button>
+                <button class="pill-btn" onclick="loadSampleSms('blinkit')">🥬 Blinkit Grocery</button>
+                <button class="pill-btn" onclick="loadSampleSms('amazon')">🛒 Amazon Shopping</button>
+                <button class="pill-btn" onclick="loadSampleSms('airtel')">📶 Airtel Bill</button>
+                <button class="pill-btn" onclick="loadSampleSms('salary')">💰 Salary Credit</button>
+              </div>
+
+              <textarea id="sms-input-text" class="textarea-box" placeholder="e.g. A/c *4021 debited by Rs. 450.00 on 24-Oct-24 to Swiggy. UPI Ref: 429381928..."></textarea>
+
+              <button class="btn btn-primary" id="btn-parse-sms" onclick="parseSmsInput()" style="width: 100%;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Analyze & Detect Transaction
+              </button>
+            </div>
+
+            <!-- Right: Live Detected Details & Confirmation Card -->
+            <div class="glass-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fa-solid fa-magnifying-glass-dollar"></i> Detection Extraction & Review
+                </h3>
+                <span class="tag-badge" id="detection-confidence-badge">Confidence: --%</span>
+              </div>
+
+              <div id="detection-empty-state" class="detection-empty">
+                <i class="fa-solid fa-message-dollar"></i>
+                <p>Paste or choose a sample SMS on the left and click "Analyze" to inspect extracted data.</p>
+              </div>
+
+              <div id="detection-result-container" style="display: none; flex-direction: column; gap: 16px;">
+                <!-- Duplicate warning if flagged -->
+                <div id="detection-duplicate-alert" class="duplicate-alert" style="display: none;">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  <span id="detection-duplicate-text">Duplicate transaction detected!</span>
+                </div>
+
+                <div class="parsed-field-grid">
+                  <div class="parsed-field">
+                    <div class="field-label">Merchant / Payee</div>
+                    <div class="field-value" id="detect-merchant">--</div>
+                  </div>
+                  <div class="parsed-field">
+                    <div class="field-label">Amount (₹)</div>
+                    <div class="field-value" id="detect-amount" style="color: #f87171;">₹0.00</div>
+                  </div>
+                  <div class="parsed-field">
+                    <div class="field-label">Transaction Date</div>
+                    <div class="field-value" id="detect-date" style="font-size: 0.9rem;">--</div>
+                  </div>
+                  <div class="parsed-field">
+                    <div class="field-label">Type & Payment Mode</div>
+                    <div class="field-value" id="detect-mode" style="font-size: 0.9rem;">--</div>
+                  </div>
+                </div>
+
+                <div class="parsed-field" style="display: flex; align-items: center; justify-content: space-between;">
+                  <div>
+                    <div class="field-label">Predicted Smart Category</div>
+                    <div class="field-value" id="detect-category-name" style="display: flex; align-items: center; gap: 8px;">
+                      <span id="detect-category-badge" class="tag-badge">Category</span>
+                    </div>
+                  </div>
+                  <!-- Category override dropdown -->
+                  <div style="width: 170px;">
+                    <label class="form-label" style="font-size: 0.72rem;">Adjust Category</label>
+                    <select id="detect-category-select" class="form-control" style="padding: 6px 10px; font-size: 0.8rem;"></select>
+                  </div>
+                </div>
+
+                <!-- Group Payment Split option -->
+                <div class="toggle-switch-group">
+                  <label class="toggle-label">
+                    <span><i class="fa-solid fa-users" style="color: #fbbf24;"></i> Group Payment Split</span>
+                    <input type="checkbox" id="detect-is-group" onchange="toggleDetectGroupSplit(this.checked)">
+                  </label>
+                  <div id="detect-group-fields" style="display: none; margin-top: 12px; gap: 10px; flex-direction: column;">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label class="form-label">Total People</label>
+                        <input type="number" id="detect-people-count" class="form-control" value="2" min="2" oninput="calculateDetectUserShare()">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Your Share (₹)</label>
+                        <input type="number" id="detect-user-share" class="form-control" step="0.01">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Trip Association dropdown -->
+                <div class="form-group">
+                  <label class="form-label">Assign to Trip (Optional)</label>
+                  <select id="detect-trip-select" class="form-control">
+                    <option value="">-- No Trip / Personal Daily --</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Optional Notes</label>
+                  <input type="text" id="detect-notes" class="form-control" placeholder="Add custom note...">
+                </div>
+
+                <button class="btn btn-success" id="btn-confirm-detected" onclick="confirmDetectedExpense()" style="width: 100%;">
+                  <i class="fa-solid fa-check-circle"></i> Confirm & Add to Expenses
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= VIEW: EXPENSES LIST ================= -->
+        <section id="view-expenses" class="view-section">
+          <div class="glass-card">
+            <!-- Filter & Search Toolbar -->
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; align-items: center; justify-content: space-between;">
+              <div style="display: flex; flex-wrap: wrap; gap: 10px; flex: 1;">
+                <div style="position: relative; min-width: 200px; flex: 1;">
+                  <input type="text" id="expense-search" class="form-control" placeholder="Search merchant or notes..." oninput="debounceExpenseSearch()">
+                </div>
+                <select id="filter-category" class="form-control" style="width: 150px;" onchange="loadExpenses()">
+                  <option value="">All Categories</option>
+                </select>
+                <select id="filter-type" class="form-control" style="width: 120px;" onchange="loadExpenses()">
+                  <option value="">All Types</option>
+                  <option value="debit">Debits</option>
+                  <option value="credit">Credits</option>
+                </select>
+                <select id="filter-trip" class="form-control" style="width: 140px;" onchange="loadExpenses()">
+                  <option value="">All Trips</option>
+                </select>
+              </div>
+
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary btn-sm" onclick="exportExpensesCSV()">
+                  <i class="fa-solid fa-file-csv"></i> Export CSV
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="openExpenseModal()">
+                  <i class="fa-solid fa-plus"></i> Add Expense
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick summary strip -->
+            <div style="display: flex; gap: 20px; padding: 12px 16px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); margin-bottom: 16px; font-size: 0.85rem;">
+              <span>Total Transactions: <strong id="filter-total-count">0</strong></span>
+              <span>•</span>
+              <span>Total Filtered Spend: <strong id="filter-total-amount" style="color: #f87171;">₹0</strong></span>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Merchant / Payee</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Payment Mode</th>
+                    <th>Type</th>
+                    <th>User Share / Total</th>
+                    <th>Trip</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="expenses-table-tbody">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= VIEW: BUDGET MANAGEMENT ================= -->
+        <section id="view-budget" class="view-section">
+          <div class="charts-row">
+            <div class="glass-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fa-solid fa-bullseye"></i> Monthly Budget Target
+                </h3>
+                <span class="tag-badge" id="budget-period-badge">October 2026</span>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                  <div class="parsed-field">
+                    <div class="field-label">Budget Allocated</div>
+                    <div class="field-value" id="budget-view-amount">₹0</div>
+                  </div>
+                  <div class="parsed-field">
+                    <div class="field-label">Spent So Far</div>
+                    <div class="field-value" id="budget-view-spent" style="color: #f87171;">₹0</div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 6px;">
+                    <span id="budget-percentage-label">0% Consumed</span>
+                    <span id="budget-remaining-label">₹0 Remaining</span>
+                  </div>
+                  <div class="progress-bar-container" style="height: 10px;">
+                    <div class="progress-bar-fill" id="budget-view-progress-fill" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <div class="parsed-field" id="budget-pacing-box">
+                  <div class="field-label">Pacing Forecast</div>
+                  <div class="field-value" id="budget-forecast-text" style="font-size: 0.95rem; font-weight: normal; color: var(--text-muted);">
+                    Loading forecasting insights...
+                  </div>
+                </div>
+
+                <form id="set-budget-form" onsubmit="handleSetBudget(event)" style="display: flex; flex-direction: column; gap: 14px; margin-top: 8px;">
+                  <div class="form-group">
+                    <label class="form-label">Set / Update Monthly Budget (₹)</label>
+                    <input type="number" id="budget-input-amount" class="form-control" placeholder="e.g. 35000" min="0" step="100" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Budget Notes / Strategy</label>
+                    <input type="text" id="budget-input-notes" class="form-control" placeholder="e.g. Save 20% for vacation">
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Budget
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Category Spending Distribution -->
+            <div class="glass-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fa-solid fa-layer-group"></i> Spending by Category
+                </h3>
+              </div>
+              <div id="budget-category-list" style="display: flex; flex-direction: column; gap: 14px;">
+                <!-- Populated via JS -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= VIEW: ANALYTICS ================= -->
+        <section id="view-analytics" class="view-section">
+          <div class="dashboard-grid">
+            <div class="charts-row">
+              <div class="glass-card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fa-solid fa-chart-line"></i> Six-Month Spending Trend
+                  </h3>
+                </div>
+                <div class="chart-wrapper" style="height: 320px;">
+                  <canvas id="analyticsTrendChart"></canvas>
+                </div>
+              </div>
+
+              <div class="glass-card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fa-solid fa-chart-pie"></i> Category Distribution
+                  </h3>
+                </div>
+                <div class="chart-wrapper" style="height: 320px;">
+                  <canvas id="analyticsCategoryChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="charts-row">
+              <div class="glass-card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fa-solid fa-credit-card"></i> Payment Mode Breakdown
+                  </h3>
+                </div>
+                <div class="chart-wrapper" style="height: 260px;">
+                  <canvas id="analyticsPaymentChart"></canvas>
+                </div>
+              </div>
+
+              <div class="glass-card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fa-solid fa-robot"></i> Automated vs Manual Entries
+                  </h3>
+                </div>
+                <div class="chart-wrapper" style="height: 260px;">
+                  <canvas id="analyticsSourceChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= VIEW: TRIP MODE ================= -->
+        <section id="view-trips" class="view-section">
+          <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">
+                  <i class="fa-solid fa-plane-departure"></i> Trip Mode & Travel Budgets
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+                  Track dedicated vacation and travel expenses separately with customized budgets.
+                </p>
+              </div>
+              <button class="btn btn-primary" onclick="openTripModal()">
+                <i class="fa-solid fa-plus"></i> Plan New Trip
+              </button>
+            </div>
+
+            <!-- Trips Grid -->
+            <div id="trips-grid-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <!-- Trip Detail & Linked Expenses Section -->
+          <div id="trip-detail-section" class="glass-card" style="display: none;">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title" id="selected-trip-title">Trip Details</h3>
+                <span id="selected-trip-dates" style="font-size: 0.8rem; color: var(--text-dim);">Dates</span>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="closeTripDetails()">
+                Close Details <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
+              <div class="parsed-field">
+                <div class="field-label">Allocated Budget</div>
+                <div class="field-value" id="trip-detail-budget">₹0</div>
+              </div>
+              <div class="parsed-field">
+                <div class="field-label">Total Spent</div>
+                <div class="field-value" id="trip-detail-spent" style="color: #f87171;">₹0</div>
+              </div>
+              <div class="parsed-field">
+                <div class="field-label">Remaining</div>
+                <div class="field-value" id="trip-detail-remaining" style="color: #34d399;">₹0</div>
+              </div>
+            </div>
+
+            <h4 style="font-size: 0.95rem; margin-bottom: 12px; font-weight: 600;">Linked Expenses</h4>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Merchant</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="trip-expenses-tbody">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= VIEW: AI INSIGHTS ================= -->
+        <section id="view-insights" class="view-section">
+          <div class="glass-card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">
+                  <i class="fa-solid fa-brain" style="color: var(--primary);"></i> Intelligent Personal Finance Observations
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+                  Dynamic observations analyzing unusual spending surges, category concentration, group splitting savings, and budget velocity.
+                </p>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="loadInsights()">
+                <i class="fa-solid fa-rotate-right"></i> Refresh Insights
+              </button>
+            </div>
+
+            <div id="full-insights-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; margin-top: 14px;">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Modal: Add / Edit Expense -->
+  <div class="modal-overlay" id="modal-expense">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-expense-title">Add New Expense</h3>
+        <button class="modal-close" onclick="closeExpenseModal()">&times;</button>
+      </div>
+      <form id="expense-form" onsubmit="handleSaveExpense(event)">
+        <input type="hidden" id="form-expense-id">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Total Amount (₹) *</label>
+              <input type="number" id="form-amount" class="form-control" placeholder="0.00" step="0.01" min="0.01" required oninput="calculateFormUserShare()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Transaction Type</label>
+              <select id="form-txntype" class="form-control">
+                <option value="debit">Debit (Expense)</option>
+                <option value="credit">Credit (Income)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Merchant / Payee *</label>
+            <input type="text" id="form-merchant" class="form-control" placeholder="e.g. Swiggy, Uber, Amazon" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category *</label>
+              <select id="form-category" class="form-control" required></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" id="form-date" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Payment Mode</label>
+              <select id="form-paymentmode" class="form-control">
+                <option value="UPI">UPI</option>
+                <option value="Card">Card (Credit/Debit)</option>
+                <option value="NetBanking">Net Banking</option>
+                <option value="Cash">Cash</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Assign to Trip (Optional)</label>
+              <select id="form-trip" class="form-control">
+                <option value="">-- None --</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Group Payment Support -->
+          <div class="toggle-switch-group">
+            <label class="toggle-label">
+              <span><i class="fa-solid fa-users" style="color: #fbbf24;"></i> Group Payment (Split with others)</span>
+              <input type="checkbox" id="form-is-group" onchange="toggleFormGroupSplit(this.checked)">
+            </label>
+            <div id="form-group-fields" style="display: none; margin-top: 12px; flex-direction: column; gap: 10px;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Number of People</label>
+                  <input type="number" id="form-people-count" class="form-control" value="2" min="2" oninput="calculateFormUserShare()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Your Share (₹)</label>
+                  <input type="number" id="form-user-share" class="form-control" step="0.01">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">People Names / Note</label>
+                <input type="text" id="form-group-names" class="form-control" placeholder="e.g. Rahul, Priya">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Notes (Optional)</label>
+            <input type="text" id="form-notes" class="form-control" placeholder="Additional details...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeExpenseModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-expense">Save Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Plan New Trip -->
+  <div class="modal-overlay" id="modal-trip">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Plan New Trip</h3>
+        <button class="modal-close" onclick="closeTripModal()">&times;</button>
+      </div>
+      <form id="trip-form" onsubmit="handleSaveTrip(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Trip Name *</label>
+            <input type="text" id="trip-name" class="form-control" placeholder="e.g. Goa Vacation, Manali Trek" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Destination</label>
+            <input type="text" id="trip-destination" class="form-control" placeholder="e.g. Goa, India">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Start Date</label>
+              <input type="date" id="trip-start-date" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">End Date</label>
+              <input type="date" id="trip-end-date" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Allocated Budget (₹)</label>
+            <input type="number" id="trip-budget" class="form-control" placeholder="e.g. 15000" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea id="trip-notes" class="form-control" placeholder="Flight details, hotel, scooty booking..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeTripModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Trip</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- App Frontend Script -->
+  <script src="js/app.js"></script>
+</body>
+</html>
